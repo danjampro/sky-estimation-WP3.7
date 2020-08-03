@@ -1,0 +1,6 @@
+data/raw
+scripts
+
+*.DS_Store
+
+*.pyc

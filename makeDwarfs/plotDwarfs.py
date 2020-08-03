@@ -2,6 +2,8 @@
 Code to plot the injected sources over patch boundaries.
 """
 import os
+import pandas as pd
+import numpy as np
 from astropy.io import fits
 from deepscan import geometry
 
@@ -45,17 +47,26 @@ def get_patch_boxes(df_patch):
     boxes = []
     for i in range(df_patch.shape[0]):
         series = df_patch.iloc[i]
-        box = geometry.box(br=[series["br0"], series["br1"]],
-                           bl=[series["bl0"], series["bl1"]],
-                           tl=[series["tl0"], series["tl1"]],
-                           tr=[series["tr0"], series["tr1"]])
+        box = geometry.Box(br=[series["br_ra"], series["br_dec"]],
+                           bl=[series["bl_ra"], series["bl_dec"]],
+                           tl=[series["tl_ra"], series["tl_dec"]],
+                           tr=[series["tr_ra"], series["tr_dec"]])
         boxes.append(box)
     return boxes
 
 
+def get_galaxy_ellipses(data, size_scaling=3):
+    """ """
+    n_sources = data["raJ2000"].size
+    axrats = data["b_d"]/data["a_d"]
+    thetas = data["pa_disk"] * np.pi/180
+    sizes = data["DiskHalfLightRadius"] * size_scaling / 3600
+    ras = data["raJ2000"] * 180 / np.pi
+    decs = data["decJ2000"] * 180 / np.pi
 
-def get_galaxy_ellipses(data, size_key="DiskHalfLightRadius", size_scaling=1):
-    """
+    ellipses = []
+    for i in range(n_sources):
+        e = geometry.Ellipse(x0=ras[i], y0=decs[i], q=axrats[i], theta=thetas[i], a=sizes[i])
+        ellipses.append(e)
 
-    """
-    pass
+    return ellipses
